@@ -15,6 +15,7 @@
             --soft: #f8f9fa;
             --ok: #188038;
             --fail: #b3261e;
+            --menu-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
         }
 
         html[data-theme="dark"] {
@@ -25,6 +26,7 @@
             --soft: #181818;
             --ok: #81c995;
             --fail: #f28b82;
+            --menu-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
         }
 
         * {
@@ -96,6 +98,47 @@
             gap: 18px;
             color: var(--muted);
             font-size: 14px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-toggle {
+            display: none;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            background: var(--bg);
+            color: var(--muted);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .menu-toggle span {
+            width: 14px;
+            height: 1px;
+            background: currentColor;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .nav.menu-open .menu-toggle span:nth-child(1) {
+            transform: translateY(5px) rotate(45deg);
+        }
+
+        .nav.menu-open .menu-toggle span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .nav.menu-open .menu-toggle span:nth-child(3) {
+            transform: translateY(-5px) rotate(-45deg);
         }
 
         .nav-icon {
@@ -365,18 +408,41 @@
             }
 
             .nav-inner {
-                height: auto;
                 min-height: 58px;
                 padding: 12px 0;
-                align-items: flex-start;
-                flex-direction: column;
+                align-items: center;
                 gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .menu-toggle {
+                display: inline-flex;
             }
 
             .nav-links {
+                order: 3;
                 width: 100%;
-                justify-content: space-between;
-                gap: 10px;
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 8px 12px;
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                background: var(--bg);
+                box-shadow: var(--menu-shadow);
+            }
+
+            .nav.menu-open .nav-links {
+                display: flex;
+            }
+
+            .nav-links a {
+                padding: 9px 0;
+            }
+
+            .nav-actions {
+                margin-left: auto;
             }
 
             .hero {
@@ -426,10 +492,12 @@
                 <img src="./favicon.ico" alt="Logo">
                 <span>Links Status</span>
             </a>
-            <div class="nav-links">
+            <div class="nav-links" id="nav-links">
                 <a href="https://www.xrbk.cn">主页</a>
                 <a href="https://blog.xrbk.cn" target="_blank" rel="noopener">博客</a>
                 <a href="https://cdn.xrbk.cn" target="_blank" rel="noopener">公共CDN</a>
+            </div>
+            <div class="nav-actions">
                 <button id="theme-toggle" class="nav-icon" title="切换主题" data-bound="1">
                     <svg id="sun-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display: none;">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -438,6 +506,11 @@
                     <svg id="moon-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display: block;">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
+                </button>
+                <button id="menu-toggle" class="menu-toggle" type="button" aria-label="打开菜单" aria-controls="nav-links" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </button>
             </div>
         </div>
@@ -504,7 +577,9 @@
         let displayedCount = 0;
         const pageSize = 12;
         const root = document.documentElement;
+        const nav = document.querySelector('.nav');
         const themeToggle = document.getElementById('theme-toggle');
+        const menuToggle = document.getElementById('menu-toggle');
         const sunIcon = document.getElementById('sun-icon');
         const moonIcon = document.getElementById('moon-icon');
 
@@ -536,6 +611,12 @@
             }
 
             document.startViewTransition(() => applyTheme(nextTheme));
+        }
+
+        function toggleMenu() {
+            const isOpen = nav.classList.toggle('menu-open');
+            menuToggle.setAttribute('aria-expanded', String(isOpen));
+            menuToggle.setAttribute('aria-label', isOpen ? '关闭菜单' : '打开菜单');
         }
 
         async function fetchData() {
@@ -645,6 +726,14 @@
 
         applyTheme(getPreferredTheme());
         themeToggle.addEventListener('click', toggleTheme);
+        menuToggle.addEventListener('click', toggleMenu);
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                nav.classList.remove('menu-open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.setAttribute('aria-label', '打开菜单');
+            });
+        });
         fetchData();
     </script>
 </body>
