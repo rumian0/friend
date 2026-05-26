@@ -3,7 +3,7 @@ import logging
 import sys
 import os
 
-from links_status.all_friends import fetch_and_process_data, deal_with_large_data
+from links_status.all_friends import fetch_friends_data, fetch_and_process_data, deal_with_large_data
 from links_status.utils.json import write_json
 from links_status.utils.config import load_config
 from links_status.link_status import check_links_status
@@ -21,6 +21,14 @@ logging.basicConfig(
 
 # ========== 加载配置 ==========
 config = load_config("./conf.yaml")
+json_url = config['spider_settings']['json_url']
+friends_data = None
+
+if config["spider_settings"]["enable"] or config["link_status"]["enable"]:
+    friends_data = fetch_friends_data(json_url)
+    if friends_data is None:
+        logging.info("获取友情链接数据失败，程序终止")
+        sys.exit(0)
 
 # ========== 爬虫模块 ==========
 if config["spider_settings"]["enable"]:
@@ -35,7 +43,8 @@ if config["spider_settings"]["enable"]:
         json_url        = json_url,
         specific_RSS    = specific_rss,
         count           = article_count,
-        cache_file      = "./temp/cache.json"
+        cache_file      = "./temp/cache.json",
+        friends_data    = friends_data
     )
 
     if fetch_result is None:
@@ -57,7 +66,7 @@ if config["link_status"]["enable"]:
     logging.info("友链状态检测已启用")
     try:
         logging.info("开始检测友链状态...")
-        status_result = check_links_status(config, "./status.json")
+        status_result = check_links_status(config, "./status.json", friends_data=friends_data)
         logging.info(f"友链状态检测完成，可访问: {status_result['accessible_count']}, 不可访问: {status_result['inaccessible_count']}")
     except SystemExit:
         raise

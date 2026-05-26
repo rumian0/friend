@@ -9,7 +9,27 @@ from links_status.utils.cache import load_cache, save_cache
 from links_status.single_friend import process_friend
 from links_status import HEADERS_JSON, timeout
 
-def fetch_and_process_data(json_url: str, specific_RSS: list = None, count: int = 5, cache_file: str = None):
+def fetch_friends_data(json_url: str):
+    session = requests.Session()
+    max_retries = 5
+    retry_delay = 3
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            logging.info(f"正在获取友情链接数据（第{attempt}次尝试）...")
+            response = session.get(json_url, headers=HEADERS_JSON, timeout=timeout)
+            friends_data = response.json()
+            logging.info(f"成功获取友情链接数据（第{attempt}次尝试）")
+            return friends_data
+        except Exception as e:
+            if attempt < max_retries:
+                logging.warning(f"第{attempt}次获取友情链接数据失败：{e}，{retry_delay}秒后重试...")
+                time.sleep(retry_delay)
+            else:
+                logging.error(f"无法获取链接：{json_url}，已重试{max_retries}次：{e}", exc_info=True)
+                return None
+
+def fetch_and_process_data(json_url: str, specific_RSS: list = None, count: int = 5, cache_file: str = None, friends_data: dict = None):
     """
     读取 JSON 数据并处理订阅信息，返回统计数据和文章信息
     
@@ -43,26 +63,10 @@ def fetch_and_process_data(json_url: str, specific_RSS: list = None, count: int 
     # 4. 建立方便判断的集合：手动源名称集合
     manual_name_set = {e['name'] for e in manual_list}
 
-    # 5. 获取朋友列表（带重试机制，最多5次，间隔3秒）
+    # 5. 准备朋友列表
     session = requests.Session()
-    friends_data = None
-    max_retries = 5
-    retry_delay = 3
-
-    for attempt in range(1, max_retries + 1):
-        try:
-            logging.info(f"正在获取友情链接数据（第{attempt}次尝试）...")
-            response = session.get(json_url, headers=HEADERS_JSON, timeout=timeout)
-            friends_data = response.json()
-            logging.info(f"成功获取友情链接数据（第{attempt}次尝试）")
-            break
-        except Exception as e:
-            if attempt < max_retries:
-                logging.warning(f"第{attempt}次获取友情链接数据失败：{e}，{retry_delay}秒后重试...")
-                time.sleep(retry_delay)
-            else:
-                logging.error(f"无法获取链接：{json_url}，已重试{max_retries}次：{e}", exc_info=True)
-                return None
+    if friends_data is None:
+        friends_data = fetch_friends_data(json_url)
 
     if friends_data is None:
         return None

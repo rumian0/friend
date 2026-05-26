@@ -287,6 +287,23 @@ class LinkStatusChecker:
             
             return results
     
+    def format_friends_data(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        if not data or 'friends' not in data or not isinstance(data['friends'], list):
+            raise ValueError('源数据格式错误，未找到friends数组')
+
+        links_to_check = []
+        for friend in data['friends']:
+            if isinstance(friend, list) and len(friend) >= 2:
+                link_data = {
+                    'name': friend[0],
+                    'link': friend[1],
+                    'favicon': friend[2] if len(friend) > 2 else ''
+                }
+                links_to_check.append(link_data)
+
+        logging.info(f"获取到 {len(links_to_check)} 个友情链接")
+        return links_to_check
+    
     def load_friends_data(self, json_url: str) -> List[Dict[str, Any]]:
         """加载友链数据"""
         try:
@@ -297,37 +314,22 @@ class LinkStatusChecker:
             
             data = response.json()
             logging.info("源数据获取成功")
-            
-            # 适配友链数据格式：从friends数组获取数据
-            if not data or 'friends' not in data or not isinstance(data['friends'], list):
-                raise ValueError('源数据格式错误，未找到friends数组')
-            
-            # 将friends数组转换为对象数组：{ name, link, favicon }
-            links_to_check = []
-            for friend in data['friends']:
-                if isinstance(friend, list) and len(friend) >= 2:
-                    link_data = {
-                        'name': friend[0],       # 名称在数组第一个位置
-                        'link': friend[1],       # 链接在数组第二个位置
-                        'favicon': friend[2] if len(friend) > 2 else ''  # 图标URL在数组第三个位置
-                    }
-                    links_to_check.append(link_data)
-            
-            logging.info(f"获取到 {len(links_to_check)} 个友情链接")
-            return links_to_check
+            return self.format_friends_data(data)
             
         except Exception as e:
             logging.error(f"获取友链数据失败: {str(e)}")
             raise
     
-    async def check_all_links(self, json_url: str = None) -> Dict[str, Any]:
+    async def check_all_links(self, json_url: str = None, friends_data: Dict[str, Any] = None) -> Dict[str, Any]:
         """检测所有友链状态"""
         try:
             # 使用配置中的URL或传入的URL
             source_url = json_url or self.config['spider_settings']['json_url']
             
-            # 加载友链数据
-            links_data = self.load_friends_data(source_url)
+            if friends_data is None:
+                links_data = self.load_friends_data(source_url)
+            else:
+                links_data = self.format_friends_data(friends_data)
             
             logging.info('开始检测所有链接...')
             
@@ -362,7 +364,7 @@ class LinkStatusChecker:
             raise
 
 
-def check_links_status(config: dict, output_path: str = "./status.json") -> Dict[str, Any]:
+def check_links_status(config: dict, output_path: str = "./status.json", friends_data: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     检测友链状态的主函数
     
@@ -378,7 +380,7 @@ def check_links_status(config: dict, output_path: str = "./status.json") -> Dict
         checker = LinkStatusChecker(config)
         
         # 运行异步检测
-        result = asyncio.run(checker.check_all_links())
+        result = asyncio.run(checker.check_all_links(friends_data=friends_data))
         
         # 保存结果
         write_json(output_path, result)
