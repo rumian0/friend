@@ -5,7 +5,7 @@
         "headers": [
           {
             "key": "Access-Control-Allow-Origin",
-            "value": "https://blog.xrbk.cn"
+            "value": "https://mingcy.cn"
           }
         ]
       }
