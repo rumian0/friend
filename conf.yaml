@@ -5,7 +5,7 @@
 #   article_count:      请填写每个博客需要获取的最大文章数量
 spider_settings:
   enable: true
-  json_url: "https://blog.xrbk.cn/links.json"
+  json_url: "https://mingcy.cn/js/friend.json"
   article_count: 5
 
 # 特殊RSS地址指定，可以置空但是不要删除！
@@ -13,8 +13,8 @@ spider_settings:
 #   name:               友链名称
 #   url:                指定的RSS地址
 specific_RSS:
-   - name: "故事的程序猿"
-     url: "https://blog.lichenghao.cn/article/rss.xml"
+  # - name: "故事的程序猿"
+  #   url: "https://blog.lichenghao.cn/article/rss.xml"
   # - name: "無名小栈"
   #   url: "https://blog.imsyy.top/rss.xml"
 
