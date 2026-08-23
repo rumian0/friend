@@ -5,7 +5,7 @@
 #   article_count:      请填写每个博客需要获取的最大文章数量
 spider_settings:
   enable: true
-  json_url: "https://mingcy.cn/js/friend.json"
+  json_url: "https://s.mingcy.cn/js/friend.json"
   article_count: 5
 
 # 特殊RSS地址指定，可以置空但是不要删除！
