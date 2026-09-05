@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="https://mingcy.cn/image/mcy.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>朋友圈 - 茗辰原</title>
+    <script>
+        (function () {
+            var saved = localStorage.getItem('fclite-theme');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+            window.__fcliteTheme = theme;
+        })();
+
+        if (typeof UserConfig === 'undefined') {
+            var UserConfig = {
+                private_api_url: 'https://fc.mingcy.cn/',
+                page_turning_number: 24,
+                error_img: 'https://i.p-i.vip/30/20240815-66bced9226a36.webp',
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/willow-god/Friend-Circle-Lite/main/fclite.min.css">
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #202124;
+            --muted: #70757a;
+            --line: #e8eaed;
+            --soft: #f8f9fa;
+            --ok: #188038;
+            --fail: #b3261e;
+            --menu-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            --fclite-bg: #ffffff;
+            --fclite-card-bg: #ffffff;
+            --fclite-border: #e3e8f7;
+            --fclite-text: #202124;
+            --fclite-author: #70757a;
+            --fclite-shadow: rgba(0, 0, 0, 0.06);
+            --fclite-hover: #3498db;
+        }
+
+        html[data-theme="dark"] {
+            --bg: #111111;
+            --text: #eeeeee;
+            --muted: #9aa0a6;
+            --line: #2a2a2a;
+            --soft: #181818;
+            --ok: #81c995;
+            --fail: #f28b82;
+            --menu-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+            --fclite-bg: #1D1E22;
+            --fclite-card-bg: #1D1E22;
+            --fclite-border: #42444a;
+            --fclite-text: #F7F7FA;
+            --fclite-author: #b3b3b3;
+            --fclite-shadow: rgba(255, 255, 255, 0.06);
+            --fclite-hover: #3498db;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+        }
+
+        body {
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .container {
+            width: min(1200px, calc(100% - 40px));
+            margin: 0 auto;
+        }
+
+        .nav {
+            border-bottom: 1px solid var(--line);
+            background: color-mix(in srgb, var(--bg) 92%, transparent);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-inner {
+            height: 62px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .brand img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-icon {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            background: var(--bg);
+            color: var(--muted);
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+
+        .nav-icon:hover {
+            color: var(--text);
+            background: var(--soft);
+        }
+
+        .hero {
+            padding: 48px 0 20px;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(28px, 4.5vw, 40px);
+            line-height: 1.18;
+            letter-spacing: -0.04em;
+            font-weight: 680;
+        }
+
+        .hero p {
+            max-width: 620px;
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .section {
+            padding: 28px 0;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 0;
+        }
+
+        .section-title h2 {
+            margin: 0;
+            font-size: 20px;
+            line-height: 1.3;
+            letter-spacing: -0.03em;
+        }
+
+        .status-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .status-head .ok {
+            color: var(--ok);
+        }
+
+        .status-head .fail {
+            color: var(--fail);
+        }
+
+        .links-list {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .link-item {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .link-item:hover {
+            border-color: var(--fclite-hover);
+            background: var(--soft);
+        }
+
+        .link-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .link-state {
+            flex: 0 0 auto;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .link-state.ok {
+            color: var(--ok);
+        }
+
+        .link-state.fail {
+            color: var(--fail);
+        }
+
+        .footer {
+            padding: 28px 0 34px;
+            color: var(--muted);
+            font-size: 13px;
+            text-align: center;
+            border-top: 1px solid var(--line);
+            margin-top: 20px;
+        }
+
+        .footer a:hover {
+            color: var(--fclite-hover);
+        }
+
+        /* === Friend-Circle-Lite overrides === */
+        #friend-circle-lite-root {
+            width: 100%;
+            margin: 0;
+        }
+
+        /* Override fclite CSS variables to match our theme */
+        #friend-circle-lite-root {
+            --text-color: var(--fclite-text);
+            --background-color: var(--soft);
+            --container-bg-color: var(--fclite-bg);
+            --hover-color: var(--fclite-hover);
+            --author-color: var(--fclite-author);
+            --border-color: var(--fclite-border);
+            --shadow-color: var(--fclite-shadow);
+            --load-more-btn-bg-color: var(--fclite-card-bg);
+            --tag-bg-color: var(--soft);
+        }
+
+        /* Stats - 4 cards always visible */
+        .random-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            padding: 16px 12px !important;
+            border-radius: 10px !important;
+        }
+
+        .stat-num {
+            font-size: 28px !important;
+        }
+
+        .stat-text {
+            font-size: 12px !important;
+        }
+
+        /* Random article section - bigger */
+        #random-article {
+            padding: 24px !important;
+            margin-bottom: 20px !important;
+            border-radius: 12px !important;
+        }
+
+        .random-title {
+            font-size: 20px !important;
+        }
+
+        /* Article grid - 3 cols on tablet, 4 on desktop */
+        .articles-container {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 14px !important;
+        }
+
+        @media (min-width: 768px) {
+            .articles-container {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+        }
+
+        @media (min-width: 1100px) {
+            .articles-container {
+                grid-template-columns: repeat(4, 1fr) !important;
+            }
+        }
+
+        /* Cards - bigger */
+        .card {
+            height: 150px !important;
+            padding: 18px !important;
+            border-radius: 12px !important;
+        }
+
+        .card-title {
+            font-size: 15px !important;
+            -webkit-line-clamp: 3 !important;
+            line-clamp: 3 !important;
+            max-height: 4.8em !important;
+        }
+
+        .card-author {
+            font-size: 12px !important;
+            padding: 4px 12px 4px 4px !important;
+        }
+
+        #friend-circle-lite-root .card-author img {
+            width: 18px !important;
+            height: 18px !important;
+        }
+
+        .card-date {
+            font-size: 12px !important;
+            bottom: 12px !important;
+            right: 12px !important;
+        }
+
+        /* Avatar image moved to top-right */
+        #friend-circle-lite-root .card-bg {
+            bottom: auto !important;
+            right: auto !important;
+            top: -20px !important;
+            right: -20px !important;
+            width: 100px !important;
+            height: 100px !important;
+            opacity: 0.35 !important;
+        }
+
+        /* Load more button - bigger */
+        #load-more-btn {
+            width: 180px !important;
+            padding: 10px 28px !important;
+            font-size: 14px !important;
+            border-radius: 24px !important;
+            margin: 24px auto !important;
+        }
+
+        #load-more-btn:hover {
+            width: 200px !important;
+        }
+
+        /* Stats footer - hide default fclite footer, we have our own */
+        #stats-container {
+            display: none !important;
+        }
+
+        @media (max-width: 720px) {
+            .container {
+                width: min(100% - 28px, 1200px);
+            }
+
+            .random-stats {
+                gap: 8px !important;
+            }
+
+            .stat-item {
+                padding: 12px 8px !important;
+            }
+
+            .stat-num {
+                font-size: 22px !important;
+            }
+
+            .articles-container {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+            }
+
+            .card {
+                height: 130px !important;
+                padding: 14px !important;
+            }
+
+            #friend-circle-lite-root .card-bg {
+                width: 80px !important;
+                height: 80px !important;
+                top: -10px !important;
+                right: -10px !important;
+            }
+
+            .links-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .articles-container {
+                grid-template-columns: 1fr !important;
+            }
+
+            .card {
+                height: 120px !important;
+            }
+
+            .links-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="container nav-inner">
+            <a class="brand" href="./">
+                <img src="./favicon.ico" alt="Logo">
+                <span>朋友圈</span>
+            </a>
+            <div class="nav-actions">
+                <button id="theme-toggle" class="nav-icon" title="切换主题">
+                    <svg id="sun-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display: none;">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                    </svg>
+                    <svg id="moon-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display: block;">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <h1>茗辰原朋友圈</h1>
+            <p>聚合友链文章，了解朋友们在做什么。</p>
+        </section>
+
+        <!-- Friend-Circle-Lite renders stats + random article + article grid here -->
+        <div id="friend-circle-lite-root"></div>
+
+        <!-- Friend links status -->
+        <section class="section">
+            <div class="section-title">
+                <h2>友链状态</h2>
+                <div class="status-head" id="links-summary">加载中...</div>
+            </div>
+            <div class="links-list" id="links-list"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            Powered by <a href="https://mingcy.cn" target="_blank" rel="noopener">茗辰原</a>
+        </div>
+    </footer>
+
+    <script src="https://fastly.jsdelivr.net/gh/willow-god/Friend-Circle-Lite/main/fclite.min.js"></script>
+
+    <script>
+        (function () {
+            var root = document.documentElement;
+            var themeToggle = document.getElementById('theme-toggle');
+            var sunIcon = document.getElementById('sun-icon');
+            var moonIcon = document.getElementById('moon-icon');
+
+            function applyTheme(theme) {
+                root.setAttribute('data-theme', theme);
+                localStorage.setItem('fclite-theme', theme);
+                window.__fcliteTheme = theme;
+                sunIcon.style.display = theme === 'dark' ? 'block' : 'none';
+                moonIcon.style.display = theme === 'dark' ? 'none' : 'block';
+            }
+
+            themeToggle.addEventListener('click', function () {
+                var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                applyTheme(next);
+            });
+
+            // Fetch friend links status
+            fetch('https://fc.mingcy.cn/status.json')
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    var links = data.link_status || [];
+                    var okCount = 0;
+                    links.forEach(function (item) { if (item.success) okCount++; });
+                    var summaryEl = document.getElementById('links-summary');
+                    var failCount = links.length - okCount;
+                    summaryEl.innerHTML = '<span class="ok">' + okCount + ' 正常</span> · <span class="fail">' + failCount + ' 异常</span>';
+
+                    var grid = document.getElementById('links-list');
+                    if (!grid) return;
+                    if (links.length === 0) {
+                        grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);font-size:14px;padding:12px 0">暂无数据</div>';
+                        return;
+                    }
+                    grid.innerHTML = links.map(function (item) {
+                        var cls = item.success ? 'ok' : 'fail';
+                        var label = item.success ? '正常' : '异常';
+                        return '<a class="link-item" href="' + item.link + '" target="_blank" rel="noopener" title="' + item.name + '">' +
+                            '<span class="link-name">' + escapeHtml(item.name) + '</span>' +
+                            '<span class="link-state ' + cls + '">' + label + '</span>' +
+                            '</a>';
+                    }).join('');
+                })
+                .catch(function () {
+                    var summaryEl = document.getElementById('links-summary');
+                    if (summaryEl) summaryEl.textContent = '暂无数据';
+                });
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                var d = document.createElement('div');
+                d.textContent = text;
+                return d.innerHTML;
+            }
+        })();
+    </script>
+</body>
+</html>
