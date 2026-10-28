@@ -13,6 +13,7 @@
 - **友链状态检测**：定时检测友链可访问性
 - **简约前端展示**：卡片式布局，响应式设计
 - **GitHub Actions 部署**：无需服务器，全自动运行
+- **EdgeOne Makers 托管**：Actions 算数据，EdgeOne 托管与加速
 
 ## 功能特性
 
@@ -34,11 +35,15 @@
 │   └── utils/             # 工具函数
 ├── static/                # 静态文件
 │   ├── index.html         # 前端展示页面
-│   ├── all.json           # 文章数据输出
-│   └── status.json        # 友链状态输出
+│   ├── edgeone.json       # EdgeOne Makers 的 headers 配置
+│   └── favicon.ico
+├── EDGEONE.md             # EdgeOne 部署完整步骤
 ├── conf.yaml              # 配置文件
 └── run.py                 # 主入口
 ```
+
+> `all.json` / `status.json` / `errors.json` 由 Actions 每次运行时生成，
+> 再和 `static/` 一起打包成 `pages/` 目录部署出去，因此不在仓库里。
 
 ## 快速开始
 
@@ -74,13 +79,23 @@ link_status:
 
 ### 4. 运行 Action
 
-进入 `Actions` 页面，手动运行 workflow，或等待定时触发。
+进入 `Actions` 页面，手动运行 workflow，或等待定时触发（默认每 6 小时一次）。
 
 > **注意**：即使友链 JSON 文件无法访问或程序运行出错，GitHub Actions 也不会发送失败邮件通知。工作流会自动创建空数据文件并继续执行，你可以通过查看 Actions 日志了解详细情况。
 
 ### 5. 部署页面
 
-使用 GitHub Pages 或其他静态托管服务部署 `static` 目录。
+默认部署到 **EdgeOne Makers**（腾讯云 EdgeOne 的静态托管 + 加速）：
+
+1. 在 [EdgeOne Makers 控制台](https://console.tencentcloud.com/edgeone/makers) 创建 API Token；
+2. 在仓库 `Settings → Secrets and variables → Actions` 里新增 Secret `EDGEONE_API_TOKEN`；
+3. 运行 workflow，产物会自动部署到项目 `friend-links`（可用仓库变量 `EDGEONE_PROJECT_NAME` 改名）。
+
+完整步骤（含域名绑定、双写过渡、排错）见 **[EDGEONE.md](./EDGEONE.md)**。
+
+> 未配置 `EDGEONE_API_TOKEN` 时，工作流会跳过这一步，继续走 `page` 分支的旧链路，不会报错。
+
+也可以继续用 GitHub Pages 或任意静态托管服务部署 `static` 目录（配合生成出来的 json）。
 
 ## 友链 JSON 格式
 
@@ -129,9 +144,15 @@ python -m http.server 8080
 
 ## 技术栈
 
-- **后端**: Python 3.x + requests + feedparser
+- **后端**: Python 3.x + requests + aiohttp + feedparser
 - **前端**: 原生 HTML + CSS + JavaScript
-- **部署**: GitHub Actions
+- **调度**: GitHub Actions（每 6 小时）
+- **托管**: EdgeOne Makers（产物由 Actions 直接部署）
+
+## 已知问题
+
+- 友链检测曾因请求头声明 `br` 压缩但未安装 Brotli，导致大量正常站点被判为不可访问，已修复。
+- `conf.yaml` 里的备用检测 API（`v1.nsuuu.com`）目前返回 502 已失效，仅作兜底，可自行替换或关闭。
 
 ## 许可证
 

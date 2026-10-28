@@ -71,7 +71,8 @@ if config["link_status"]["enable"]:
     except SystemExit:
         raise
     except Exception as e:
-        logging.info(f"友链状态检测失败，程序终止")
+        # 以前这里只打印一句"失败"，错误原因被吞掉，排查时无从下手
+        logging.error(f"友链状态检测失败，程序终止：{e}", exc_info=True)
         sys.exit(0)
 else:
     logging.info("友链状态检测未启用")

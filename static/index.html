@@ -17,7 +17,7 @@
 
         if (typeof UserConfig === 'undefined') {
             var UserConfig = {
-                private_api_url: 'https://fc.mingcy.cn/',
+                private_api_url: window.location.origin + '/',
                 page_turning_number: 24,
                 error_img: 'https://i.p-i.vip/30/20240815-66bced9226a36.webp',
             }
@@ -511,7 +511,7 @@
             });
 
             // Fetch friend links status
-            fetch('https://fc.mingcy.cn/status.json')
+            fetch('./status.json')
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     var links = data.link_status || [];

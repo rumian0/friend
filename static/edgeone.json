@@ -1,13 +1,17 @@
 {
-    "headers": [
-      {
-        "source": "/*",
-        "headers": [
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "https://mingcy.cn"
-          }
-        ]
-      }
-    ]
+  "headers": [
+    {
+      "source": "/*",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://mingcy.cn"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
 }

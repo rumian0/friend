@@ -45,7 +45,9 @@ class LinkStatusChecker:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 (Friend-Circle-Lite/1.0)',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'zh-CN,zh;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
+            # 不要声明 br：aiohttp 未安装 Brotli 时，服务端返回 br 压缩会直接抛
+            # ContentEncodingError（400），导致大量正常站点被误判为不可访问。
+            'Accept-Encoding': 'gzip, deflate',
             'Connection': 'keep-alive'
         }
         
